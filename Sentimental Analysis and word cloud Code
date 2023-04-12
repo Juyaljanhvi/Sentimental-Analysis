@@ -1,0 +1,113 @@
+#import libraries
+import pandas as pd
+import numpy as np
+import re
+
+from google.colab import files
+uploaded = files.upload()
+
+
+df = pd.read_csv('Int Full Data Csv.csv')
+
+
+# Define a function to clean the text
+def clean(text):
+# Removes all special characters and numericals leaving the alphabets
+    text = re.sub('[^A-Za-z]+', ' ', text)
+    return text
+
+
+# Cleaning the text in the review column
+df['Cleaned Reviews'] = df['reviewHeadLine'].apply(clean)
+df.head()
+
+
+import nltk
+nltk.download('punkt')
+from nltk.tokenize import word_tokenize
+from nltk import pos_tag
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+nltk.download('wordnet')
+from nltk.corpus import wordnet
+nltk.download('omw-1.4')
+nltk.download('averaged_perceptron_tagger')
+
+
+# POS tagger dictionary
+pos_dict = {'J':wordnet.ADJ, 'V':wordnet.VERB, 'N':wordnet.NOUN, 'R':wordnet.ADV}
+def token_stop_pos(text):
+    tags = pos_tag(word_tokenize(text))
+    newlist = []
+    for word, tag in tags:
+        if word.lower() not in set(stopwords.words('english')):
+          newlist.append(tuple([word, pos_dict.get(tag[0])]))
+    return newlist
+df['POS tagged'] = df['Cleaned Reviews'].apply(token_stop_pos)
+df.head()
+
+
+from textblob import TextBlob
+# function to calculate subjectivity
+def getSubjectivity(review):
+    return TextBlob(review).sentiment.subjectivity
+# function to calculate polarity
+def getPolarity(review):
+        return TextBlob(review).sentiment.polarity
+
+# function to analyze the reviews
+def analysis(score):
+    if score < 0:
+        return 'Negative'
+    elif score == 0:
+        return 'Neutral'
+    else:
+        return 'Positive'
+        
+        
+        from nltk.stem import WordNetLemmatizer
+wordnet_lemmatizer = WordNetLemmatizer()
+def lemmatize(pos_data):
+    lemma_rew = " "
+    for word, pos in pos_data:
+      if not pos:
+        lemma = word
+        lemma_rew = lemma_rew + " " + lemma
+      else:
+        lemma = wordnet_lemmatizer.lemmatize(word, pos=pos)
+        lemma_rew = lemma_rew + " " + lemma
+    return lemma_rew
+
+df['Lemma'] = df['POS tagged'].apply(lemmatize)
+df.head()
+
+
+fin_data.to_csv('Polarity Int Review.csv',encoding='utf-8-sig')
+files.download('Polarity Int Review.csv')
+
+
+tb_counts = fin_data.Analysis.value_counts()
+
+tb_counts
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+
+
+import matplotlib.pyplot as pPlot
+from wordcloud import WordCloud, STOPWORDS
+import numpy as npy
+from PIL import Image
+dataset = open("Budapest.csv", "r").read()
+def create_word_cloud(string):
+   cloud = WordCloud(background_color = "white", max_words = 200, stopwords = set(STOPWORDS))
+   cloud.generate(string)
+   cloud.to_file("budapest.png")
+dataset = dataset.lower()
+create_word_cloud(dataset)
+
+
+fin_data.to_csv('Wordcloud.csv',encoding='utf-8-sig')
+files.download('Wordcloud.csv')
